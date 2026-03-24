@@ -440,19 +440,21 @@ if st.session_state.quiz_state:
             title_html = f'<div class="word-display color-der">{q["ans"]}</div>'
             detail_html = f'<div class="meaning-display">{q["case"]}</div><div class="detail-display">對象：{q["gender"]}</div>'
         if word_to_speak:
-            # 使用一個帶有 onload 的不可見組件，強制在手機主視窗執行
-            st.components.v1.html(
+            # 使用更強大的延遲觸發，確保手機 UI 渲染完畢後呼叫 window.parent
+            # 這邊直接把 JS 寫進 Markdown，不另外存成變數，避免 NameError
+            st.markdown(
                 f"""
-                <script>
-                    // 嘗試多次觸發，確保手機瀏覽器收聽到指令
+                <img src="x" style="display:none;" onerror="
                     setTimeout(() => {{
-                        window.parent.speakGerman("{word_to_speak}");
-                    }}, 100);
-                </script>
+                        const msg = new SpeechSynthesisUtterance('{word_to_speak}');
+                        msg.lang = 'de-DE';
+                        msg.rate = 0.9;
+                        window.parent.speechSynthesis.speak(msg);
+                    }}, 200);
+                ">
                 """,
-                height=0,
+                unsafe_allow_html=True
             )
-            st.markdown(js_code, unsafe_allow_html=True)
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
         st.divider()
