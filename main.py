@@ -66,8 +66,8 @@ def fetch_google_sheet_data():
 
     nomen_dict = {
         "陽性": process_nomen_col(4, 0, 1, 2),
-        "中性": process_nomen_col(4, 3, 4, 5),
-        "陰性": process_nomen_col(4, 6, 7, 8),
+        "陰性": process_nomen_col(4, 3, 4, 5),
+        "中性": process_nomen_col(4, 6, 7, 8),
     }
 
     def process_verb_col(start_row, word_col, mean_col, past_col, p2_col):
