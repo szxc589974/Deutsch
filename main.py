@@ -265,6 +265,24 @@ with st.sidebar:
         st.rerun()
 
 st.title("🇩🇪 Vokabel Meister")
+if "audio_unlocked" not in st.session_state:
+    st.session_state.audio_unlocked = False
+
+if not st.session_state.audio_unlocked:
+    if st.button("🔊 點我開啟自動發音 (手機使用者必點)"):
+        st.markdown(
+            """
+            <script>
+            // 透過這次點擊，對瀏覽器宣告：我要用聲音了！
+            const msg = new SpeechSynthesisUtterance("Willkommen");
+            msg.lang = 'de-DE';
+            window.parent.speechSynthesis.speak(msg);
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+        st.session_state.audio_unlocked = True
+        st.rerun()
 st.markdown(
     f"""
     <div class="stats-container">
