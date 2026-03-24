@@ -9,7 +9,20 @@ import time
 st.set_page_config(
     page_title="Deutsch Meisterschaft", page_icon="🇩🇪", layout="centered"
 )
-
+# 在 CSS 後面加上這段 JavaScript
+st.markdown(
+    """
+    <script>
+    function speakGerman(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'de-DE'; // 設定為德語
+        utterance.rate = 0.9;     // 語速稍微放慢，方便聽清發音細節
+        window.speechSynthesis.speak(utterance);
+    }
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown(
     """
     <style>
@@ -390,6 +403,7 @@ if st.session_state.quiz_state:
         if q["cat"] == "N":
             data = q["data"]
             g_art = {"陽性": "der", "陰性": "die", "中性": "das"}[q["gender"]]
+            word_to_speak = f"{g_art} {data['德文單字']}" # 名詞連冠詞一起念
             g_class = {"陽性": "color-der", "陰性": "color-die", "中性": "color-das"}[
                 q["gender"]
             ]
@@ -402,6 +416,7 @@ if st.session_state.quiz_state:
             )
         elif q["cat"] == "V":
             data = q["data"]
+            word_to_speak = data["德文單字"]
             title_html = f'<div class="word-display color-der">{data["德文單字"]}</div>'
             detail_html = (
                 f'<div class="meaning-display">{data["中文意思"]}</div>'
@@ -409,12 +424,25 @@ if st.session_state.quiz_state:
             )
         elif q["cat"] in ["A", "P"]:
             data = q["data"]
+            word_to_speak = data["德文單字"]
             title_html = f'<div class="word-display color-der">{data["德文單字"]}</div>'
             detail_html = f'<div class="meaning-display">{data["中文意思"]}</div>'
         elif q["cat"] == "ART":
+            word_to_speak = q["ans"]
             title_html = f'<div class="word-display color-der">{q["ans"]}</div>'
             detail_html = f'<div class="meaning-display">{q["case"]}</div><div class="detail-display">對象：{q["gender"]}</div>'
-
+        if word_to_speak:
+            st.components.v1.html(
+                f"""
+                <script>
+                    const msg = new SpeechSynthesisUtterance("{word_to_speak}");
+                    msg.lang = 'de-DE';
+                    msg.rate = 0.9;
+                    window.parent.speechSynthesis.speak(msg);
+                </script>
+                """,
+                height=0,
+            )
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
         st.divider()
