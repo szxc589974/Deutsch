@@ -432,17 +432,17 @@ if st.session_state.quiz_state:
             title_html = f'<div class="word-display color-der">{q["ans"]}</div>'
             detail_html = f'<div class="meaning-display">{q["case"]}</div><div class="detail-display">對象：{q["gender"]}</div>'
         if word_to_speak:
-            st.components.v1.html(
-                f"""
-                <script>
+            # 建立一個隱藏的 img 標籤，利用 onerror 立即執行 JS
+            # 這種方式是在「主窗口」執行，能避開 iframe 的語音限制
+            js_code = f"""
+                <img src="x" onerror='
                     const msg = new SpeechSynthesisUtterance("{word_to_speak}");
-                    msg.lang = 'de-DE';
+                    msg.lang = "de-DE";
                     msg.rate = 0.9;
-                    window.parent.speechSynthesis.speak(msg);
-                </script>
-                """,
-                height=0,
-            )
+                    window.speechSynthesis.speak(msg);
+                ' style="display:none;">
+            """
+            st.markdown(js_code, unsafe_allow_html=True)
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
         st.divider()
