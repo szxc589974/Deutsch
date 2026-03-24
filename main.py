@@ -13,12 +13,20 @@ st.set_page_config(
 st.markdown(
     """
     <script>
-    function speakGerman(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'de-DE'; // 設定為德語
-        utterance.rate = 0.9;     // 語速稍微放慢，方便聽清發音細節
-        window.speechSynthesis.speak(utterance);
+    // 預熱語音引擎，解鎖手機瀏覽器限制
+    function unlockAudio() {
+        const msg = new SpeechSynthesisUtterance("");
+        window.parent.speechSynthesis.speak(msg);
     }
+
+    // 核心發音函式
+    window.parent.speakGerman = function(text) {
+        if (!text) return;
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'de-DE';
+        msg.rate = 0.9;
+        window.parent.speechSynthesis.speak(msg);
+    };
     </script>
     """,
     unsafe_allow_html=True,
@@ -432,16 +440,18 @@ if st.session_state.quiz_state:
             title_html = f'<div class="word-display color-der">{q["ans"]}</div>'
             detail_html = f'<div class="meaning-display">{q["case"]}</div><div class="detail-display">對象：{q["gender"]}</div>'
         if word_to_speak:
-            # 建立一個隱藏的 img 標籤，利用 onerror 立即執行 JS
-            # 這種方式是在「主窗口」執行，能避開 iframe 的語音限制
-            js_code = f"""
-                <img src="x" onerror='
-                    const msg = new SpeechSynthesisUtterance("{word_to_speak}");
-                    msg.lang = "de-DE";
-                    msg.rate = 0.9;
-                    window.speechSynthesis.speak(msg);
-                ' style="display:none;">
-            """
+            # 使用一個帶有 onload 的不可見組件，強制在手機主視窗執行
+            st.components.v1.html(
+                f"""
+                <script>
+                    // 嘗試多次觸發，確保手機瀏覽器收聽到指令
+                    setTimeout(() => {{
+                        window.parent.speakGerman("{word_to_speak}");
+                    }}, 100);
+                </script>
+                """,
+                height=0,
+            )
             st.markdown(js_code, unsafe_allow_html=True)
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
