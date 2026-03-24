@@ -66,8 +66,8 @@ def fetch_google_sheet_data():
 
     nomen_dict = {
         "陽性": process_nomen_col(4, 0, 1, 2),
-        "中性": process_nomen_col(4, 3, 4, 5),
-        "陰性": process_nomen_col(4, 6, 7, 8),
+        "陰性": process_nomen_col(4, 3, 4, 5),
+        "中性": process_nomen_col(4, 6, 7, 8),
     }
 
     def process_verb_col(start_row, word_col, mean_col, past_col, p2_col):
@@ -372,11 +372,12 @@ if st.session_state.quiz_state:
                         record_result(choice == data["中文意思"], data)
 
             elif q["cat"] == "ART":
+                display_title = f"{q['gender']} {q['case']}"
                 st.markdown(
-                    f'<div class="word-display color-default">{q["case"]}</div>',
+                    f'<div class="word-display color-default">{display_title}</div>',
                     unsafe_allow_html=True,
                 )
-                st.subheader(f"性別/複數：{q['gender']}")
+                # st.subheader(f"性別/複數：{q['gender']}")
                 art_in = st.text_input("請輸入正確冠詞：").strip()
                 if st.form_submit_button("對答案"):
                     record_result(
