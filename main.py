@@ -372,11 +372,12 @@ if st.session_state.quiz_state:
                         record_result(choice == data["中文意思"], data)
 
             elif q["cat"] == "ART":
+                display_title = f"{q['gender']} {q['case']}"
                 st.markdown(
-                    f'<div class="word-display color-default">{q["case"]}</div>',
+                    f'<div class="word-display color-default">{display_title}</div>',
                     unsafe_allow_html=True,
                 )
-                st.subheader(f"性別/複數：{q['gender']}")
+                # st.subheader(f"性別/複數：{q['gender']}")
                 art_in = st.text_input("請輸入正確冠詞：").strip()
                 if st.form_submit_button("對答案"):
                     record_result(
