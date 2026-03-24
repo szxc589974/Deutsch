@@ -13,15 +13,11 @@ st.set_page_config(
 st.markdown(
     """
     <script>
-    // 預熱語音引擎，解鎖手機瀏覽器限制
-    function unlockAudio() {
-        const msg = new SpeechSynthesisUtterance("");
-        window.parent.speechSynthesis.speak(msg);
-    }
-
-    // 核心發音函式
-    window.parent.speakGerman = function(text) {
+    // 定義一個全域的播放器，避開 Rerun 導致的重複實例化
+    window.parent.forceSpeak = function(text) {
         if (!text) return;
+        // 停止目前正在播放的聲音（避免重疊）
+        window.parent.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'de-DE';
         msg.rate = 0.9;
@@ -440,20 +436,17 @@ if st.session_state.quiz_state:
             title_html = f'<div class="word-display color-der">{q["ans"]}</div>'
             detail_html = f'<div class="meaning-display">{q["case"]}</div><div class="detail-display">對象：{q["gender"]}</div>'
         if word_to_speak:
-            # 使用更強大的延遲觸發，確保手機 UI 渲染完畢後呼叫 window.parent
-            # 這邊直接把 JS 寫進 Markdown，不另外存成變數，避免 NameError
-            st.markdown(
+            # 使用 components 建立一個獨立的執行環境，直接呼叫父層的播放函式
+            import streamlit.components.v1 as components
+            components.html(
                 f"""
-                <img src="x" style="display:none;" onerror="
-                    setTimeout(() => {{
-                        const msg = new SpeechSynthesisUtterance('{word_to_speak}');
-                        msg.lang = 'de-DE';
-                        msg.rate = 0.9;
-                        window.parent.speechSynthesis.speak(msg);
-                    }}, 200);
-                ">
+                <script>
+                    // 這裡不使用 setTimeout 或是縮短到極致
+                    // 嘗試直接對父視窗下達指令
+                    window.parent.forceSpeak("{word_to_speak}");
+                </script>
                 """,
-                unsafe_allow_html=True
+                height=0,
             )
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
