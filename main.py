@@ -4,7 +4,7 @@ import random
 import gspread
 from google.oauth2.service_account import Credentials
 import time
-import streamlit.components.v1 as components  # <--- 補上這行
+import streamlit.components.v1 as components
 
 # --- 頁面配置與 CSS 優化 ---
 st.set_page_config(
@@ -27,10 +27,15 @@ st.markdown(
     // --- 新增：自動收回側邊欄的函式 ---
     // 2. 側邊欄收回函式
     window.parent.closeSidebar = function() {
-        const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
-        const closeButton = window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"]');
-        if (sidebar && closeButton && sidebar.offsetWidth > 0) {
-            closeButton.click();
+        // 尋找手機版專用的側邊欄遮罩 (Overlay)
+        // 當 Overlay 存在且可見時，點擊它通常就能關閉側邊欄
+        const overlay = window.parent.document.querySelector('[data-testid="stSidebarUserContent"]')?.parentElement?.parentElement?.querySelector('div[tabindex="0"]');
+        if (overlay) {
+            overlay.click();
+        } else {
+            // 備用方案：尋找關閉按鈕並點擊
+            const closeBtn = window.parent.document.querySelector('button[kind="headerNoPadding"]');
+            if (closeBtn) closeBtn.click();
         }
     };
     </script>
@@ -274,9 +279,13 @@ with st.sidebar:
             set_question(cat)
             # 觸發 JS 關閉側邊欄
             components.html("<script>window.parent.closeSidebar();</script>", height=0)
+            time.sleep(0.1)
             st.rerun()
     if st.button("🎲 全部"):
         set_question(random.choice(["名詞", "動詞", "形容詞", "代名詞", "冠詞"]))
+        components.html("<script>window.parent.closeSidebar();</script>", height=0)
+        time.sleep(0.1)
+        st.rerun()
     st.divider()
     if st.button("📕 查看錯題本"):
         st.session_state.show_wrong = True
