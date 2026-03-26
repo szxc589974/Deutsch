@@ -4,6 +4,7 @@ import random
 import gspread
 from google.oauth2.service_account import Credentials
 import time
+import streamlit.components.v1 as components  # <--- 補上這行
 
 # --- 頁面配置與 CSS 優化 ---
 st.set_page_config(
