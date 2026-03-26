@@ -268,24 +268,16 @@ def record_result(correct, item_data):
 # --- 側邊欄 ---
 with st.sidebar:
     st.title("🎮 導覽選單")
-    menu_options = [
+    for btn_text, cat in [
         ("🏠 名詞", "名詞"),
         ("🏃 動詞", "動詞"),
         ("🎨 形容詞", "形容詞"),
         ("📏 冠詞", "冠詞"),
-    ]
-    for btn_text, cat in menu_options:
-        if st.button(btn_text, key=f"side_{cat}"):
+    ]:
+        if st.button(btn_text):
             set_question(cat)
-            # 觸發 JS 關閉側邊欄
-            components.html("<script>window.parent.closeSidebar();</script>", height=0)
-            time.sleep(0.1)
-            st.rerun()
     if st.button("🎲 全部"):
         set_question(random.choice(["名詞", "動詞", "形容詞", "代名詞", "冠詞"]))
-        components.html("<script>window.parent.closeSidebar();</script>", height=0)
-        time.sleep(0.1)
-        st.rerun()
     st.divider()
     if st.button("📕 查看錯題本"):
         st.session_state.show_wrong = True
