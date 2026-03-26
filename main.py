@@ -225,8 +225,9 @@ def set_question(cat_name):
             "type": random.choice(["填空", "意填空", "意選擇", "過去回答"]),
         }
         if quiz_data["type"] == "意選擇":
-            flat = [i["中文意思"] for sub in verben.values() for i in sub]
-            quiz_data["options"] = random.sample(flat, 4) + [item["中文意思"]]
+            flat = [get_short_meaning(i["中文意思"]) for sub in verben.values() for i in sub]
+            correct_meaning = get_short_meaning(item["中文意思"])
+            quiz_data["options"] = random.sample(flat, 4) + [correct_meaning]
             random.shuffle(quiz_data["options"])
     elif cat_name in ["形容詞", "代名詞"]:
         source = adjektiv if cat_name == "形容詞" else pronomen
@@ -264,6 +265,19 @@ def record_result(correct, item_data):
             st.session_state.wrong_book.append(item_data)
     st.rerun()  # 立即刷新以顯示結果
 
+
+def get_short_meaning(full_text):
+    """
+    只提取 ● 後面、換行前的定義文字，過濾掉例句。
+    例如：'● 出發/發車 \n Der Zug...' -> '出發/發車'
+    """
+    if not full_text: return ""
+    # 尋找所有 ● 後面的文字，直到遇到換行或句號
+    meanings = re.findall(r"●\s*([^\n\(：:]+)", full_text)
+    if meanings:
+        return " / ".join([m.strip() for m in meanings])
+    # 如果格式不符，就取前 20 個字當作提示
+    return full_text.split('\n')[0][:20] + "..."
 
 # --- 側邊欄 ---
 with st.sidebar:
@@ -373,7 +387,8 @@ if st.session_state.quiz_state:
             elif q["cat"] == "V":
                 data = q["data"]
                 if q["type"] == "填空":
-                    st.write(f"意為：{data['中文意思']}")
+                    short_meaning = get_short_meaning(data['中文意思'])
+                    st.write(f"意為：{short_meaning}")
                     av = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
                     if st.form_submit_button("確認"):
                         record_result(av.lower() == data["德文單字"].lower(), data)
