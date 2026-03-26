@@ -23,6 +23,17 @@ st.markdown(
         msg.rate = 0.9;
         window.parent.speechSynthesis.speak(msg);
     };
+    // --- 新增：自動收回側邊欄的函式 ---
+    window.parent.closeSidebar = function() {
+        // 尋找 Streamlit 側邊欄的收納按鈕 (不同版本 Class 可能略有不同，但通常含有此屬性)
+        const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
+        const closeButton = window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"]');
+    
+        // 如果側邊欄是開啟狀態（寬度大於 0），且找到了關閉按鈕，就點擊它
+        if (sidebar && closeButton && sidebar.offsetWidth > 0) {
+            closeButton.click();
+        }
+    };
     </script>
     """,
     unsafe_allow_html=True,
