@@ -253,12 +253,12 @@ def record_result(correct, item_data):
 # --- 側邊欄 ---
 with st.sidebar:
     st.title("🎮 導覽選單")
-    for btn_text, cat in [
+    menu_options = [
         ("🏠 名詞", "名詞"),
         ("🏃 動詞", "動詞"),
         ("🎨 形容詞", "形容詞"),
         ("📏 冠詞", "冠詞"),
-    ]:
+    ]
     for btn_text, cat in menu_options:
         # 當按鈕被點擊時，會執行 set_question 並觸發 rerun
         if st.button(btn_text, key=f"side_{cat}"):
