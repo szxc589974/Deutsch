@@ -71,7 +71,7 @@ def fetch_google_sheet_data():
                 data.append(
                     {
                         "德文單字": row[word_col].strip(),
-                        "中文意思": row[mean_col].strip(),
+                        "中文意思": row[mean_col],
                         "複數型態": (
                             row[plural_col].strip()
                             if row[plural_col]
@@ -96,7 +96,7 @@ def fetch_google_sheet_data():
                 data.append(
                     {
                         "德文單字": row[word_col].strip(),
-                        "中文意思": row[mean_col].strip(),
+                        "中文意思": row[mean_col],
                         "過去式": row[past_col].strip(),
                         "過去分詞": row[p2_col].strip(),
                     }
@@ -109,13 +109,13 @@ def fetch_google_sheet_data():
     }
     adj_vals = sh.worksheet("形容詞").get_all_values()
     adjektiv_list = [
-        {"德文單字": r[0].strip(), "中文意思": r[1].strip()}
+        {"德文單字": r[0].strip(), "中文意思": r[1]}
         for r in adj_vals[2:]
         if len(r) >= 2 and r[0]
     ]
     pro_vals = sh.worksheet("代名詞").get_all_values()
     pronomen_list = [
-        {"德文單字": r[0].strip(), "中文意思": r[1].strip()}
+        {"德文單字": r[0].strip(), "中文意思": r[1]}
         for r in pro_vals[2:]
         if len(r) >= 2 and r[0]
     ]
