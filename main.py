@@ -33,7 +33,13 @@ st.markdown(
     .stButton>button { width: 100%; border-radius: 12px; height: 3.5em; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     .question-card { background-color: #ffffff; padding: 25px; border-radius: 20px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
     .word-display { font-size: 36px; font-weight: 800; margin-bottom: 5px; }
-    .meaning-display { font-size: 20px; color: #4B5563; margin-bottom: 5px; font-weight: 500; }
+    .meaning-display { font-size: 20px; 
+    color: #4B5563; 
+    margin-bottom: 5px; 
+    font-weight: 500;
+    /* 關鍵新增：保留換行與空格 */
+    white-space: pre-wrap; 
+    text-align: left; /* 詳解通常靠左比較好閱讀 */ }
     .detail-display { font-size: 16px; color: #6B7280; margin-top: 10px; line-height: 1.6; }
     .stats-container { display: flex; justify-content: space-around; background-color: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
     .stats-item { text-align: center; }
@@ -253,8 +259,12 @@ with st.sidebar:
         ("🎨 形容詞", "形容詞"),
         ("📏 冠詞", "冠詞"),
     ]:
-        if st.button(btn_text):
+    for btn_text, cat in menu_options:
+        # 當按鈕被點擊時，會執行 set_question 並觸發 rerun
+        if st.button(btn_text, key=f"side_{cat}"):
             set_question(cat)
+            # 在某些 Streamlit 版本中，這行 rerun 就能讓側邊欄在手機模式下自動縮回
+            st.rerun()
     if st.button("🎲 全部"):
         set_question(random.choice(["名詞", "動詞", "形容詞", "代名詞", "冠詞"]))
     st.divider()
