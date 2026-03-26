@@ -271,10 +271,10 @@ with st.sidebar:
         ("📏 冠詞", "冠詞"),
     ]
     for btn_text, cat in menu_options:
-        # 當按鈕被點擊時，會執行 set_question 並觸發 rerun
         if st.button(btn_text, key=f"side_{cat}"):
             set_question(cat)
-            # 在某些 Streamlit 版本中，這行 rerun 就能讓側邊欄在手機模式下自動縮回
+            # 觸發 JS 關閉側邊欄
+            components.html("<script>window.parent.closeSidebar();</script>", height=0)
             st.rerun()
     if st.button("🎲 全部"):
         set_question(random.choice(["名詞", "動詞", "形容詞", "代名詞", "冠詞"]))
