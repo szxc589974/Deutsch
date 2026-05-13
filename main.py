@@ -4,7 +4,7 @@ import random
 import gspread
 from google.oauth2.service_account import Credentials
 import time
-<<<<<<< HEAD
+
 import base64
 from io import BytesIO
 from gtts import gTTS
@@ -28,10 +28,9 @@ def speak_german(text):
     except Exception as e:
         st.error(f"語音播放出錯: {e}")
 
-=======
+
 import streamlit.components.v1 as components
 import re
->>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
 
 # --- 頁面配置與 CSS 優化 ---
 st.set_page_config(
@@ -252,7 +251,9 @@ def set_question(cat_name):
             "type": random.choice(["填空", "意填空", "意選擇", "過去回答"]),
         }
         if quiz_data["type"] == "意選擇":
-            flat = [get_short_meaning(i["中文意思"]) for sub in verben.values() for i in sub]
+            flat = [
+                get_short_meaning(i["中文意思"]) for sub in verben.values() for i in sub
+            ]
             correct_meaning = get_short_meaning(item["中文意思"])
             quiz_data["options"] = random.sample(flat, 4) + [correct_meaning]
             random.shuffle(quiz_data["options"])
@@ -298,13 +299,15 @@ def get_short_meaning(full_text):
     只提取 ● 後面、換行前的定義文字，過濾掉例句。
     例如：'● 出發/發車 \n Der Zug...' -> '出發/發車'
     """
-    if not full_text: return ""
+    if not full_text:
+        return ""
     # 尋找所有 ● 後面的文字，直到遇到換行或句號
     meanings = re.findall(r"●\s*([^\n\(：:]+)", full_text)
     if meanings:
         return " / ".join([m.strip() for m in meanings])
     # 如果格式不符，就取前 20 個字當作提示
-    return full_text.split('\n')[0][:20] + "..."
+    return full_text.split("\n")[0][:20] + "..."
+
 
 # --- 側邊欄 ---
 with st.sidebar:
@@ -341,7 +344,7 @@ if not st.session_state.audio_unlocked:
             window.parent.speechSynthesis.speak(msg);
             </script>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
         st.session_state.audio_unlocked = True
         st.rerun()
@@ -418,7 +421,7 @@ if st.session_state.quiz_state:
             elif q["cat"] == "V":
                 data = q["data"]
                 if q["type"] == "填空":
-                    short_meaning = get_short_meaning(data['中文意思'])
+                    short_meaning = get_short_meaning(data["中文意思"])
                     st.write(f"意為：{short_meaning}")
                     av = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
                     if st.form_submit_button("確認"):
@@ -492,7 +495,7 @@ if st.session_state.quiz_state:
         if q["cat"] == "N":
             data = q["data"]
             g_art = {"陽性": "der", "陰性": "die", "中性": "das"}[q["gender"]]
-            word_to_speak = f"{g_art} {data['德文單字']}" # 名詞連冠詞一起念
+            word_to_speak = f"{g_art} {data['德文單字']}"  # 名詞連冠詞一起念
             g_class = {"陽性": "color-der", "陰性": "color-die", "中性": "color-das"}[
                 q["gender"]
             ]
@@ -523,6 +526,7 @@ if st.session_state.quiz_state:
         if word_to_speak:
             # 使用 components 建立一個獨立的執行環境，直接呼叫父層的播放函式
             import streamlit.components.v1 as components
+
             components.html(
                 f"""
                 <script>

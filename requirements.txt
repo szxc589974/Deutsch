@@ -7,3 +7,4 @@ beautifulsoup4
 streamlit-autorefresh
 tqdm
 pytz
+gTTS>=2.5.1
