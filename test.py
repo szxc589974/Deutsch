@@ -232,11 +232,14 @@ def set_question(cat_name):
     if cat_name == "名詞":
         g = random.choice(["陽性", "陰性", "中性"])
         item = random.choice(nomen[g])
+        # 將原本的 "填空" 拆分為 "單字填空" 與 "複數填空"
         quiz_data = {
             "cat": "N",
             "data": item,
             "gender": g,
-            "type": random.choice(["填空", "意填空", "意選擇", "猜性別"]),
+            "type": random.choice(
+                ["單字填空", "複數填空", "意填空", "意選擇", "猜性別"]
+            ),
         }
         if quiz_data["type"] == "意選擇":
             flat = [i["中文意思"] for sub in nomen.values() for i in sub]
@@ -365,13 +368,25 @@ if st.session_state.quiz_state:
     st.markdown('<div class="question-card">', unsafe_allow_html=True)
 
     if not st.session_state.answered:
+        gender_colors = {"陽性": "color-der", "陰性": "color-die", "中性": "color-das"}
         # 使用 st.form 解決「按兩下」問題
-        with st.form(key="quiz_form"):
-            if q["cat"] == "N":
-                data, g_art = (
-                    q["data"],
-                    {"陽性": "der", "陰性": "die", "中性": "das"}[q["gender"]],
-                )
+        if q["cat"] == "N":
+            data, g_art = (
+                q["data"],
+                {"陽性": "der", "陰性": "die", "中性": "das"}[q["gender"]],
+            )
+            g_class = gender_colors.get(q["gender"], "color-default")
+            # 1. 先在 form 外面顯示單字與播放按鈕
+            if q["type"] in ["意填空", "意選擇"]:
+                speak_german(f"{g_art} {data['德文單字']}")  # 自動播放
+                if st.button("🔊", key="replay_q_btn"):
+                    speak_german(f"{g_art} {data['德文單字']}")
+            elif q["type"] in ["猜性別"]:
+                speak_german(f"{data['德文單字']}")  # 自動播放
+                if st.button("🔊", key="replay_q_btn"):
+                    speak_german(f"{g_art} {data['德文單字']}")
+            with st.form(key="quiz_form"):
+
                 if q["type"] == "填空":
                     st.write(f"中文意思：{data['中文意思']}")
                     a1 = st.text_input(
@@ -385,9 +400,8 @@ if st.session_state.quiz_state:
                             data,
                         )
                 elif q["type"] == "意填空":
-                    speak_german(f"{g_art} {data['德文單字']}")
                     st.markdown(
-                        f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
+                        f'<div class="word-display {g_class}">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -395,7 +409,6 @@ if st.session_state.quiz_state:
                     if st.form_submit_button("提交"):
                         record_result(ac and ac in data["中文意思"], data)
                 elif q["type"] == "猜性別":
-                    speak_german(f"{g_art} {data['德文單字']}")
                     st.markdown(
                         f'<div class="word-display color-default">{data["德文單字"]}</div>',
                         unsafe_allow_html=True,
@@ -409,86 +422,86 @@ if st.session_state.quiz_state:
                         ans_map = {"der": "陽性", "die": "陰性", "das": "中性"}
                         record_result(ans_map[choice] == q["gender"], data)
                 elif q["type"] == "意選擇":
-                    speak_german(f"{g_art} {data['德文單字']}")
+
                     st.markdown(
-                        f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
+                        f'<div class="word-display {g_class}">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
                     )
                     choice = st.radio("選擇正確意思：", q["options"])
                     if st.form_submit_button("提交答案"):
                         record_result(choice == data["中文意思"], data)
 
-            elif q["cat"] == "V":
-                data = q["data"]
-                if q["type"] == "填空":
-                    short_meaning = get_short_meaning(data["中文意思"])
-                    st.write(f"意為：{short_meaning}")
-                    av = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
-                    if st.form_submit_button("確認"):
-                        record_result(av.lower() == data["德文單字"].lower(), data)
-                elif q["type"] == "過去回答":
-                    st.markdown(
-                        f'<div class="word-display color-default">{data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    v1 = st.text_input("過去式 (Präteritum)").strip()
-                    v2 = st.text_input("過去分詞 (Partizip II)").strip()
-                    if st.form_submit_button("提交"):
-                        record_result(
-                            v1.lower() == data["過去式"].lower()
-                            and v2.lower() == data["過去分詞"].lower(),
-                            data,
-                        )
-                elif q["type"] == "意填空":
-                    st.markdown(
-                        f'<div class="word-display color-default">{data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    acv = st.text_input("輸入中文意思：")
-                    if st.form_submit_button("提交"):
-                        record_result(acv and acv in data["中文意思"], data)
-                elif q["type"] == "意選擇":
-                    st.markdown(
-                        f'<div class="word-display color-default">{data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    choice = st.radio("選擇意思：", q["options"])
-                    if st.form_submit_button("提交"):
-                        record_result(choice == data["中文意思"], data)
-
-            elif q["cat"] in ["A", "P"]:
-                data = q["data"]
+        elif q["cat"] == "V":
+            data = q["data"]
+            if q["type"] == "填空":
+                short_meaning = get_short_meaning(data["中文意思"])
+                st.write(f"意為：{short_meaning}")
+                av = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
+                if st.form_submit_button("確認"):
+                    record_result(av.lower() == data["德文單字"].lower(), data)
+            elif q["type"] == "過去回答":
                 st.markdown(
-                    f'<div class="word-display color-default">{data["德文單字"] if q["type"] != "填空" else "填入德文單字"}</div>',
+                    f'<div class="word-display color-default">{data["德文單字"]}</div>',
                     unsafe_allow_html=True,
                 )
-                if q["type"] == "填空":
-                    st.write(f"意為：{data['中文意思']}")
-                    aa = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
-                    if st.form_submit_button("確認"):
-                        record_result(aa.lower() == data["德文單字"].lower(), data)
-                elif q["type"] == "意填空":
-                    aca = st.text_input("輸入中文意思：")
-                    if st.form_submit_button("提交"):
-                        record_result(aca and aca in data["中文意思"], data)
-                elif q["type"] == "意選擇":
-                    choice = st.radio("選擇意思：", q["options"])
-                    if st.form_submit_button("提交"):
-                        record_result(choice == data["中文意思"], data)
-
-            elif q["cat"] == "ART":
-                display_title = f"{q['gender']} {q['case']}"
-                st.markdown(
-                    f'<div class="word-display color-default">{display_title}</div>',
-                    unsafe_allow_html=True,
-                )
-                # st.subheader(f"性別/複數：{q['gender']}")
-                art_in = st.text_input("請輸入正確冠詞：").strip()
-                if st.form_submit_button("對答案"):
+                v1 = st.text_input("過去式 (Präteritum)").strip()
+                v2 = st.text_input("過去分詞 (Partizip II)").strip()
+                if st.form_submit_button("提交"):
                     record_result(
-                        art_in.lower() == q["ans"].lower(),
-                        {"格位": q["case"], "答案": q["ans"]},
+                        v1.lower() == data["過去式"].lower()
+                        and v2.lower() == data["過去分詞"].lower(),
+                        data,
                     )
+            elif q["type"] == "意填空":
+                st.markdown(
+                    f'<div class="word-display color-default">{data["德文單字"]}</div>',
+                    unsafe_allow_html=True,
+                )
+                acv = st.text_input("輸入中文意思：")
+                if st.form_submit_button("提交"):
+                    record_result(acv and acv in data["中文意思"], data)
+            elif q["type"] == "意選擇":
+                st.markdown(
+                    f'<div class="word-display color-default">{data["德文單字"]}</div>',
+                    unsafe_allow_html=True,
+                )
+                choice = st.radio("選擇意思：", q["options"])
+                if st.form_submit_button("提交"):
+                    record_result(choice == data["中文意思"], data)
+
+        elif q["cat"] in ["A", "P"]:
+            data = q["data"]
+            st.markdown(
+                f'<div class="word-display color-default">{data["德文單字"] if q["type"] != "填空" else "填入德文單字"}</div>',
+                unsafe_allow_html=True,
+            )
+            if q["type"] == "填空":
+                st.write(f"意為：{data['中文意思']}")
+                aa = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
+                if st.form_submit_button("確認"):
+                    record_result(aa.lower() == data["德文單字"].lower(), data)
+            elif q["type"] == "意填空":
+                aca = st.text_input("輸入中文意思：")
+                if st.form_submit_button("提交"):
+                    record_result(aca and aca in data["中文意思"], data)
+            elif q["type"] == "意選擇":
+                choice = st.radio("選擇意思：", q["options"])
+                if st.form_submit_button("提交"):
+                    record_result(choice == data["中文意思"], data)
+
+        elif q["cat"] == "ART":
+            display_title = f"{q['gender']} {q['case']}"
+            st.markdown(
+                f'<div class="word-display color-default">{display_title}</div>',
+                unsafe_allow_html=True,
+            )
+            # st.subheader(f"性別/複數：{q['gender']}")
+            art_in = st.text_input("請輸入正確冠詞：").strip()
+            if st.form_submit_button("對答案"):
+                record_result(
+                    art_in.lower() == q["ans"].lower(),
+                    {"格位": q["case"], "答案": q["ans"]},
+                )
 
     else:
         # --- B. 顯示詳細資訊卡 (Answered) ---
@@ -504,7 +517,7 @@ if st.session_state.quiz_state:
             )
             detail_html = (
                 f'<div class="meaning-display">{data["中文意思"]}</div>'
-                f'<div class="detail-display"><b>複數：</b>{data["複數型態"]}<br><b>詞性：</b>{q["gender"]}</div>'
+                f'<div class="detail-display"><b>複數：</b>{data["複數型態"]}<br></div>'
             )
         elif q["cat"] == "V":
             data = q["data"]
@@ -539,6 +552,8 @@ if st.session_state.quiz_state:
             )
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
+        if st.button("🔊 重新播放發音", use_container_width=True, key="replay_ans"):
+            speak_german(word_to_speak)
         st.divider()
 
         if st.session_state.is_correct:

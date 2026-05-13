@@ -232,11 +232,14 @@ def set_question(cat_name):
     if cat_name == "名詞":
         g = random.choice(["陽性", "陰性", "中性"])
         item = random.choice(nomen[g])
+        # 將原本的 "填空" 拆分為 "單字填空" 與 "複數填空"
         quiz_data = {
             "cat": "N",
             "data": item,
             "gender": g,
-            "type": random.choice(["填空", "意填空", "意選擇", "猜性別"]),
+            "type": random.choice(
+                ["單字填空", "複數填空", "意填空", "意選擇", "猜性別"]
+            ),
         }
         if quiz_data["type"] == "意選擇":
             flat = [i["中文意思"] for sub in nomen.values() for i in sub]
@@ -384,18 +387,31 @@ if st.session_state.quiz_state:
                     speak_german(f"{g_art} {data['德文單字']}")
             with st.form(key="quiz_form"):
 
-                if q["type"] == "填空":
-                    st.write(f"中文意思：{data['中文意思']}")
-                    a1 = st.text_input(
-                        f"單數 ({g_art}): {data['德文單字'][0]}..."
+                if q["type"] == "單字填空":
+                    st.write(f"請輸入此單字 ({g_art})")
+                    st.markdown(
+                        f'<div class="word-display color-default">{data["中文意思"]}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    a_word = st.text_input("德文單字：").strip()
+                    if st.form_submit_button("檢查答案"):
+                        record_result(a_word.lower() == data["德文單字"].lower(), data)
+
+                # --- B. 德填複：給單數，填入複數 ---
+                elif q["type"] == "複數填空":
+                    st.write("請輸入該單字的複數型態")
+                    st.markdown(
+                        f'<div class="word-display {g_class}">{g_art} {data["德文單字"]}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    a_plural = st.text_input(
+                        f"複數型態 ({data['複數型態'][0]}...):"
                     ).strip()
-                    a2 = st.text_input(f"複數型態: {data['複數型態'][0]}...").strip()
                     if st.form_submit_button("檢查答案"):
                         record_result(
-                            a1.lower() == data["德文單字"].lower()
-                            and a2.lower() == data["複數型態"].lower(),
-                            data,
+                            a_plural.lower() == data["複數型態"].lower(), data
                         )
+
                 elif q["type"] == "意填空":
                     st.markdown(
                         f'<div class="word-display {g_class}">{g_art} {data["德文單字"]}</div>',
