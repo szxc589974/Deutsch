@@ -90,10 +90,22 @@ st.markdown(
     .color-die { color: #ef4444; }
     .color-das { color: #22c55e; }
     .color-default { color: #334155; }
+    /* 讓小播放鍵更精緻 */
+    .stButton button[kind="secondary"] {
+        border: none;
+        background: transparent;
+        font-size: 20px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+
+def play_button(text, label="🔊", key=None):
+    """產生一個點擊後會播放德文語音的 Streamlit 按鈕"""
+    if st.button(label, key=key):
+        speak_german(text)
 
 
 # --- 核心資料抓取邏輯 ---
@@ -365,7 +377,6 @@ if st.session_state.quiz_state:
     st.markdown('<div class="question-card">', unsafe_allow_html=True)
 
     if not st.session_state.answered:
-        # 使用 st.form 解決「按兩下」問題
         with st.form(key="quiz_form"):
             if q["cat"] == "N":
                 data, g_art = (
@@ -386,20 +397,33 @@ if st.session_state.quiz_state:
                         )
                 elif q["type"] == "意填空":
                     speak_german(f"{g_art} {data['德文單字']}")
-                    st.markdown(
-                        f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
+                    # 建立兩欄，左邊顯示單字，右邊放小按鈕
+                    col1, col2 = st.columns([0.9, 0.1])
+                    with col1:
+                        st.markdown(
+                            f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with col2:
+                        if st.button("🔊", key="replay_q"):  # 手動播放小按鈕
+                            speak_german(f"{g_art} {data['德文單字']}")
 
                     ac = st.text_input("輸入中文意思：")
                     if st.form_submit_button("提交"):
                         record_result(ac and ac in data["中文意思"], data)
                 elif q["type"] == "猜性別":
                     speak_german(f"{g_art} {data['德文單字']}")
-                    st.markdown(
-                        f'<div class="word-display color-default">{data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
+                    # 建立兩欄，左邊顯示單字，右邊放小按鈕
+                    col1, col2 = st.columns([0.9, 0.1])
+                    with col1:
+                        st.markdown(
+                            f'<div class="word-display color-default">{data["德文單字"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with col2:
+                        if st.button("🔊", key="replay_q"):  # 手動播放小按鈕
+                            speak_german(f"{g_art} {data['德文單字']}")
+
                     st.write(f"({data['中文意思']})")
                     # 猜性別題型在 form 中需使用下拉選單或單選，因為按鈕在 form 中會立即提交
                     choice = st.radio(
@@ -410,10 +434,17 @@ if st.session_state.quiz_state:
                         record_result(ans_map[choice] == q["gender"], data)
                 elif q["type"] == "意選擇":
                     speak_german(f"{g_art} {data['德文單字']}")
-                    st.markdown(
-                        f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
+                    # 建立兩欄，左邊顯示單字，右邊放小按鈕
+                    col1, col2 = st.columns([0.9, 0.1])
+                    with col1:
+                        st.markdown(
+                            f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with col2:
+                        if st.button("🔊", key="replay_q"):  # 手動播放小按鈕
+                            speak_german(f"{g_art} {data['德文單字']}")
+
                     choice = st.radio("選擇正確意思：", q["options"])
                     if st.form_submit_button("提交答案"):
                         record_result(choice == data["中文意思"], data)
@@ -539,7 +570,11 @@ if st.session_state.quiz_state:
             )
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
+
+        # 在公佈答案與下一題按鈕之間加入
         st.divider()
+        if st.button("🔊 重新播放單字發音", use_container_width=True):
+            speak_german(word_to_speak)
 
         if st.session_state.is_correct:
             st.success("🎉 Richtig!")
