@@ -373,8 +373,12 @@ if st.session_state.quiz_state:
             )
 
             # 1. 先在 form 外面顯示單字與播放按鈕
-            if q["type"] in ["意填空", "猜性別", "意選擇"]:
+            if q["type"] in ["意填空", "意選擇"]:
                 speak_german(f"{g_art} {data['德文單字']}")  # 自動播放
+                if st.button("🔊", key="replay_q_btn"):
+                    speak_german(f"{g_art} {data['德文單字']}")
+            elif q["type"] in ["猜性別"]:
+                speak_german(f"{data['德文單字']}")  # 自動播放
                 if st.button("🔊", key="replay_q_btn"):
                     speak_german(f"{g_art} {data['德文單字']}")
             with st.form(key="quiz_form"):
