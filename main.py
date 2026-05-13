@@ -4,6 +4,7 @@ import random
 import gspread
 from google.oauth2.service_account import Credentials
 import time
+<<<<<<< HEAD
 import base64
 from io import BytesIO
 from gtts import gTTS
@@ -27,19 +28,60 @@ def speak_german(text):
     except Exception as e:
         st.error(f"語音播放出錯: {e}")
 
+=======
+import streamlit.components.v1 as components
+import re
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
 
 # --- 頁面配置與 CSS 優化 ---
 st.set_page_config(
     page_title="Deutsch Meisterschaft", page_icon="🇩🇪", layout="centered"
 )
-
+# 在 CSS 後面加上這段 JavaScript
+st.markdown(
+    """
+    <script>
+    // 定義一個全域的播放器，避開 Rerun 導致的重複實例化
+    window.parent.forceSpeak = function(text) {
+        if (!text) return;
+        // 停止目前正在播放的聲音（避免重疊）
+        window.parent.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'de-DE';
+        msg.rate = 0.9;
+        window.parent.speechSynthesis.speak(msg);
+    };
+    // --- 新增：自動收回側邊欄的函式 ---
+    // 2. 側邊欄收回函式
+    window.parent.closeSidebar = function() {
+        // 尋找手機版專用的側邊欄遮罩 (Overlay)
+        // 當 Overlay 存在且可見時，點擊它通常就能關閉側邊欄
+        const overlay = window.parent.document.querySelector('[data-testid="stSidebarUserContent"]')?.parentElement?.parentElement?.querySelector('div[tabindex="0"]');
+        if (overlay) {
+            overlay.click();
+        } else {
+            // 備用方案：尋找關閉按鈕並點擊
+            const closeBtn = window.parent.document.querySelector('button[kind="headerNoPadding"]');
+            if (closeBtn) closeBtn.click();
+        }
+    };
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown(
     """
     <style>
     .stButton>button { width: 100%; border-radius: 12px; height: 3.5em; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     .question-card { background-color: #ffffff; padding: 25px; border-radius: 20px; border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
     .word-display { font-size: 36px; font-weight: 800; margin-bottom: 5px; }
-    .meaning-display { font-size: 20px; color: #4B5563; margin-bottom: 5px; font-weight: 500; }
+    .meaning-display { font-size: 20px; 
+    color: #4B5563; 
+    margin-bottom: 5px; 
+    font-weight: 500;
+    /* 關鍵新增：保留換行與空格 */
+    white-space: pre-wrap; 
+    text-align: left; /* 詳解通常靠左比較好閱讀 */ }
     .detail-display { font-size: 16px; color: #6B7280; margin-top: 10px; line-height: 1.6; }
     .stats-container { display: flex; justify-content: space-around; background-color: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
     .stats-item { text-align: center; }
@@ -77,7 +119,7 @@ def fetch_google_sheet_data():
                 data.append(
                     {
                         "德文單字": row[word_col].strip(),
-                        "中文意思": row[mean_col].strip(),
+                        "中文意思": row[mean_col],
                         "複數型態": (
                             row[plural_col].strip()
                             if row[plural_col]
@@ -89,8 +131,8 @@ def fetch_google_sheet_data():
 
     nomen_dict = {
         "陽性": process_nomen_col(4, 0, 1, 2),
-        "中性": process_nomen_col(4, 3, 4, 5),
-        "陰性": process_nomen_col(4, 6, 7, 8),
+        "陰性": process_nomen_col(4, 3, 4, 5),
+        "中性": process_nomen_col(4, 6, 7, 8),
     }
 
     def process_verb_col(start_row, word_col, mean_col, past_col, p2_col):
@@ -102,7 +144,7 @@ def fetch_google_sheet_data():
                 data.append(
                     {
                         "德文單字": row[word_col].strip(),
-                        "中文意思": row[mean_col].strip(),
+                        "中文意思": row[mean_col],
                         "過去式": row[past_col].strip(),
                         "過去分詞": row[p2_col].strip(),
                     }
@@ -115,13 +157,13 @@ def fetch_google_sheet_data():
     }
     adj_vals = sh.worksheet("形容詞").get_all_values()
     adjektiv_list = [
-        {"德文單字": r[0].strip(), "中文意思": r[1].strip()}
+        {"德文單字": r[0].strip(), "中文意思": r[1]}
         for r in adj_vals[2:]
         if len(r) >= 2 and r[0]
     ]
     pro_vals = sh.worksheet("代名詞").get_all_values()
     pronomen_list = [
-        {"德文單字": r[0].strip(), "中文意思": r[1].strip()}
+        {"德文單字": r[0].strip(), "中文意思": r[1]}
         for r in pro_vals[2:]
         if len(r) >= 2 and r[0]
     ]
@@ -210,8 +252,9 @@ def set_question(cat_name):
             "type": random.choice(["填空", "意填空", "意選擇", "過去回答"]),
         }
         if quiz_data["type"] == "意選擇":
-            flat = [i["中文意思"] for sub in verben.values() for i in sub]
-            quiz_data["options"] = random.sample(flat, 4) + [item["中文意思"]]
+            flat = [get_short_meaning(i["中文意思"]) for sub in verben.values() for i in sub]
+            correct_meaning = get_short_meaning(item["中文意思"])
+            quiz_data["options"] = random.sample(flat, 4) + [correct_meaning]
             random.shuffle(quiz_data["options"])
     elif cat_name in ["形容詞", "代名詞"]:
         source = adjektiv if cat_name == "形容詞" else pronomen
@@ -250,6 +293,19 @@ def record_result(correct, item_data):
     st.rerun()  # 立即刷新以顯示結果
 
 
+def get_short_meaning(full_text):
+    """
+    只提取 ● 後面、換行前的定義文字，過濾掉例句。
+    例如：'● 出發/發車 \n Der Zug...' -> '出發/發車'
+    """
+    if not full_text: return ""
+    # 尋找所有 ● 後面的文字，直到遇到換行或句號
+    meanings = re.findall(r"●\s*([^\n\(：:]+)", full_text)
+    if meanings:
+        return " / ".join([m.strip() for m in meanings])
+    # 如果格式不符，就取前 20 個字當作提示
+    return full_text.split('\n')[0][:20] + "..."
+
 # --- 側邊欄 ---
 with st.sidebar:
     st.title("🎮 導覽選單")
@@ -271,6 +327,24 @@ with st.sidebar:
         st.rerun()
 
 st.title("🇩🇪 Vokabel Meister")
+if "audio_unlocked" not in st.session_state:
+    st.session_state.audio_unlocked = False
+
+if not st.session_state.audio_unlocked:
+    if st.button("🔊 點我開啟自動發音 (手機使用者必點)"):
+        st.markdown(
+            """
+            <script>
+            // 透過這次點擊，對瀏覽器宣告：我要用聲音了！
+            const msg = new SpeechSynthesisUtterance("Willkommen");
+            msg.lang = 'de-DE';
+            window.parent.speechSynthesis.speak(msg);
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+        st.session_state.audio_unlocked = True
+        st.rerun()
 st.markdown(
     f"""
     <div class="stats-container">
@@ -344,7 +418,8 @@ if st.session_state.quiz_state:
             elif q["cat"] == "V":
                 data = q["data"]
                 if q["type"] == "填空":
-                    st.write(f"意為：{data['中文意思']}")
+                    short_meaning = get_short_meaning(data['中文意思'])
+                    st.write(f"意為：{short_meaning}")
                     av = st.text_input(f"德文單字：{data['德文單字'][0]}...").strip()
                     if st.form_submit_button("確認"):
                         record_result(av.lower() == data["德文單字"].lower(), data)
@@ -399,11 +474,12 @@ if st.session_state.quiz_state:
                         record_result(choice == data["中文意思"], data)
 
             elif q["cat"] == "ART":
+                display_title = f"{q['gender']} {q['case']}"
                 st.markdown(
-                    f'<div class="word-display color-default">{q["case"]}</div>',
+                    f'<div class="word-display color-default">{display_title}</div>',
                     unsafe_allow_html=True,
                 )
-                st.subheader(f"性別/複數：{q['gender']}")
+                # st.subheader(f"性別/複數：{q['gender']}")
                 art_in = st.text_input("請輸入正確冠詞：").strip()
                 if st.form_submit_button("對答案"):
                     record_result(
@@ -416,6 +492,7 @@ if st.session_state.quiz_state:
         if q["cat"] == "N":
             data = q["data"]
             g_art = {"陽性": "der", "陰性": "die", "中性": "das"}[q["gender"]]
+            word_to_speak = f"{g_art} {data['德文單字']}" # 名詞連冠詞一起念
             g_class = {"陽性": "color-der", "陰性": "color-die", "中性": "color-das"}[
                 q["gender"]
             ]
@@ -428,6 +505,7 @@ if st.session_state.quiz_state:
             )
         elif q["cat"] == "V":
             data = q["data"]
+            word_to_speak = data["德文單字"]
             title_html = f'<div class="word-display color-der">{data["德文單字"]}</div>'
             detail_html = (
                 f'<div class="meaning-display">{data["中文意思"]}</div>'
@@ -435,12 +513,26 @@ if st.session_state.quiz_state:
             )
         elif q["cat"] in ["A", "P"]:
             data = q["data"]
+            word_to_speak = data["德文單字"]
             title_html = f'<div class="word-display color-der">{data["德文單字"]}</div>'
             detail_html = f'<div class="meaning-display">{data["中文意思"]}</div>'
         elif q["cat"] == "ART":
+            word_to_speak = q["ans"]
             title_html = f'<div class="word-display color-der">{q["ans"]}</div>'
             detail_html = f'<div class="meaning-display">{q["case"]}</div><div class="detail-display">對象：{q["gender"]}</div>'
-
+        if word_to_speak:
+            # 使用 components 建立一個獨立的執行環境，直接呼叫父層的播放函式
+            import streamlit.components.v1 as components
+            components.html(
+                f"""
+                <script>
+                    // 這裡不使用 setTimeout 或是縮短到極致
+                    // 嘗試直接對父視窗下達指令
+                    window.parent.forceSpeak("{word_to_speak}");
+                </script>
+                """,
+                height=0,
+            )
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
         st.divider()

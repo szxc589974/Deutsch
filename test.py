@@ -4,6 +4,7 @@ import random
 import gspread
 from google.oauth2.service_account import Credentials
 import time
+<<<<<<< HEAD
 import base64
 from io import BytesIO
 from gtts import gTTS
@@ -27,6 +28,8 @@ def speak_german(text):
     except Exception as e:
         st.error(f"語音播放出錯: {e}")
 
+=======
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
 
 # --- 頁面配置與 CSS 優化 ---
 st.set_page_config(
@@ -89,8 +92,13 @@ def fetch_google_sheet_data():
 
     nomen_dict = {
         "陽性": process_nomen_col(4, 0, 1, 2),
+<<<<<<< HEAD
         "中性": process_nomen_col(4, 3, 4, 5),
         "陰性": process_nomen_col(4, 6, 7, 8),
+=======
+        "陰性": process_nomen_col(4, 3, 4, 5),
+        "中性": process_nomen_col(4, 6, 7, 8),
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
     }
 
     def process_verb_col(start_row, word_col, mean_col, past_col, p2_col):
@@ -308,17 +316,26 @@ if st.session_state.quiz_state:
                             data,
                         )
                 elif q["type"] == "意填空":
+<<<<<<< HEAD
                     speak_german(f"{g_art} {data['德文單字']}")
+=======
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
                     st.markdown(
                         f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
                     )
+<<<<<<< HEAD
 
+=======
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
                     ac = st.text_input("輸入中文意思：")
                     if st.form_submit_button("提交"):
                         record_result(ac and ac in data["中文意思"], data)
                 elif q["type"] == "猜性別":
+<<<<<<< HEAD
                     speak_german(f"{g_art} {data['德文單字']}")
+=======
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
                     st.markdown(
                         f'<div class="word-display color-default">{data["德文單字"]}</div>',
                         unsafe_allow_html=True,
@@ -332,7 +349,10 @@ if st.session_state.quiz_state:
                         ans_map = {"der": "陽性", "die": "陰性", "das": "中性"}
                         record_result(ans_map[choice] == q["gender"], data)
                 elif q["type"] == "意選擇":
+<<<<<<< HEAD
                     speak_german(f"{g_art} {data['德文單字']}")
+=======
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
                     st.markdown(
                         f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
@@ -399,11 +419,20 @@ if st.session_state.quiz_state:
                         record_result(choice == data["中文意思"], data)
 
             elif q["cat"] == "ART":
+<<<<<<< HEAD
                 st.markdown(
                     f'<div class="word-display color-default">{q["case"]}</div>',
                     unsafe_allow_html=True,
                 )
                 st.subheader(f"性別/複數：{q['gender']}")
+=======
+                display_title = f"{q['gender']} {q['case']}"
+                st.markdown(
+                    f'<div class="word-display color-default">{display_title}</div>',
+                    unsafe_allow_html=True,
+                )
+                # st.subheader(f"性別/複數：{q['gender']}")
+>>>>>>> d48b2daa16a2d2e86effb826441c70e117d84004
                 art_in = st.text_input("請輸入正確冠詞：").strip()
                 if st.form_submit_button("對答案"):
                     record_result(
