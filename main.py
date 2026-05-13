@@ -514,7 +514,7 @@ if st.session_state.quiz_state:
             )
             detail_html = (
                 f'<div class="meaning-display">{data["中文意思"]}</div>'
-                f'<div class="detail-display"><b>複數：</b>{data["複數型態"]}<br><b>詞性：</b>{q["gender"]}</div>'
+                f'<div class="detail-display"><b>複數：</b>{data["複數型態"]}<br></div>'
             )
         elif q["cat"] == "V":
             data = q["data"]
