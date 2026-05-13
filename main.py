@@ -365,13 +365,14 @@ if st.session_state.quiz_state:
     st.markdown('<div class="question-card">', unsafe_allow_html=True)
 
     if not st.session_state.answered:
+        gender_colors = {"陽性": "color-der", "陰性": "color-die", "中性": "color-das"}
         # 使用 st.form 解決「按兩下」問題
         if q["cat"] == "N":
             data, g_art = (
                 q["data"],
                 {"陽性": "der", "陰性": "die", "中性": "das"}[q["gender"]],
             )
-
+            g_class = gender_colors.get(q["gender"], "color-default")
             # 1. 先在 form 外面顯示單字與播放按鈕
             if q["type"] in ["意填空", "意選擇"]:
                 speak_german(f"{g_art} {data['德文單字']}")  # 自動播放
@@ -397,7 +398,7 @@ if st.session_state.quiz_state:
                         )
                 elif q["type"] == "意填空":
                     st.markdown(
-                        f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
+                        f'<div class="word-display {g_class}">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -420,7 +421,7 @@ if st.session_state.quiz_state:
                 elif q["type"] == "意選擇":
 
                     st.markdown(
-                        f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
+                        f'<div class="word-display {g_class}">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
                     )
                     choice = st.radio("選擇正確意思：", q["options"])
