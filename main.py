@@ -375,17 +375,8 @@ if st.session_state.quiz_state:
             # 1. 先在 form 外面顯示單字與播放按鈕
             if q["type"] in ["意填空", "猜性別", "意選擇"]:
                 speak_german(f"{g_art} {data['德文單字']}")  # 自動播放
-
-                col1, col2 = st.columns([0.8, 0.2])
-                with col1:
-                    st.markdown(
-                        f'<div class="word-display color-default">{g_art if q["type"] != "猜性別" else ""} {data["德文單字"]}</div>',
-                        unsafe_allow_html=True,
-                    )
-                with col2:
-                    # 這裡用一般的 st.button 是安全的，因為它不在 form 裡面
-                    if st.button("🔊", key="replay_q_btn"):
-                        speak_german(f"{g_art} {data['德文單字']}")
+                if st.button("🔊", key="replay_q_btn"):
+                    speak_german(f"{g_art} {data['德文單字']}")
             with st.form(key="quiz_form"):
 
                 if q["type"] == "填空":
@@ -553,6 +544,8 @@ if st.session_state.quiz_state:
             )
         st.markdown(title_html, unsafe_allow_html=True)
         st.markdown(detail_html, unsafe_allow_html=True)
+        if st.button("🔊 重新播放發音", use_container_width=True, key="replay_ans"):
+            speak_german(word_to_speak)
         st.divider()
 
         if st.session_state.is_correct:
