@@ -4,29 +4,6 @@ import random
 import gspread
 from google.oauth2.service_account import Credentials
 import time
-import base64
-from io import BytesIO
-from gtts import gTTS
-
-
-def speak_german(text):
-    """將德文文字轉為自動播放的音訊組件"""
-    try:
-        tts = gTTS(text=text, lang="de")
-        fp = BytesIO()
-        tts.write_to_fp(fp)
-        fp.seek(0)
-        # 轉成 base64 嵌入 HTML 實現自動播放
-        audio_str = base64.b64encode(fp.read()).decode()
-        audio_html = f"""
-            <audio autoplay>
-                <source src="data:audio/mp3;base64,{audio_str}" type="audio/mp3">
-            </audio>
-        """
-        st.markdown(audio_html, unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"語音播放出錯: {e}")
-
 
 # --- 頁面配置與 CSS 優化 ---
 st.set_page_config(
@@ -308,17 +285,14 @@ if st.session_state.quiz_state:
                             data,
                         )
                 elif q["type"] == "意填空":
-                    speak_german(f"{g_art} {data['德文單字']}")
                     st.markdown(
                         f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
                     )
-
                     ac = st.text_input("輸入中文意思：")
                     if st.form_submit_button("提交"):
                         record_result(ac and ac in data["中文意思"], data)
                 elif q["type"] == "猜性別":
-                    speak_german(f"{g_art} {data['德文單字']}")
                     st.markdown(
                         f'<div class="word-display color-default">{data["德文單字"]}</div>',
                         unsafe_allow_html=True,
@@ -332,7 +306,6 @@ if st.session_state.quiz_state:
                         ans_map = {"der": "陽性", "die": "陰性", "das": "中性"}
                         record_result(ans_map[choice] == q["gender"], data)
                 elif q["type"] == "意選擇":
-                    speak_german(f"{g_art} {data['德文單字']}")
                     st.markdown(
                         f'<div class="word-display color-default">{g_art} {data["德文單字"]}</div>',
                         unsafe_allow_html=True,
